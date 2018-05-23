@@ -52,23 +52,32 @@ def main():
 def CrossValidationGridSearchNested(X_data, Y_data, num_trials, fold_num, est_classifcation, tuned_param, scoring):
     max_score = -1
     best_estimator = est_classifcation
+    is_tuned_param_empty = (tuned_param == []) | (tuned_param == None)
 
     for i in range(num_trials):
         inner_cv = StratifiedKFold(n_splits=fold_num, random_state=i, shuffle=True)
         outer_cv = StratifiedKFold(n_splits=fold_num, random_state=i+1, shuffle=True)
 
-        # Non_nested parameter search and scoring
-        clf = GridSearchCV(estimator=est_classifcation, param_grid=tuned_param, cv=inner_cv, scoring=scoring)
-        clf.fit(X_data, Y_data)
+        if(is_tuned_param_empty):
+            param_score = cross_val_score(est_classifcation, X=X_data, y=Y_data, cv=outer_cv, scoring=scoring).mean()
+        else:
+            # Non_nested parameter search and scoring
+            clf = GridSearchCV(estimator=est_classifcation, param_grid=tuned_param, cv=inner_cv, scoring=scoring)
+            clf.fit(X_data, Y_data)
 
-        # CV with parameter optimization
-        param_score = cross_val_score(clf.best_estimator_, X=X_data, y=Y_data, cv=outer_cv, scoring=scoring).mean()
+            # CV with parameter optimization
+            param_score = cross_val_score(clf.best_estimator_, X=X_data, y=Y_data, cv=outer_cv, scoring=scoring).mean()
+
         if(param_score > max_score):
             max_score = param_score
-            best_estimator = clf.best_estimator_
+            if(is_tuned_param_empty):
+                best_estimator = est_classifcation
+            else:
+                best_estimator = clf.best_estimator_
 
-        progress = i/num_trials*100
+        progress = (i+1)/num_trials*100
         print(f'> progress = {progress}%')
+
     return (max_score, best_estimator)
 
 #---------------Execution---------------#
