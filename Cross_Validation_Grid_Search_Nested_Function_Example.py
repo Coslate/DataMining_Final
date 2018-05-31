@@ -17,6 +17,7 @@ from sklearn.model_selection import GridSearchCV
 from matplotlib import pyplot as plt
 from sklearn.svm import SVC
 import numpy as np
+import pandas as pd
 import operator
 
 #########################
@@ -26,6 +27,13 @@ def main():
     data = load_breast_cancer()
     X = data.data
     Y = data.target
+
+    #----------------Generate original df for reference-------------------#
+    org_columns = ["col_org_"+str(x) for x in range(0, len(X[0]), 1)]
+    original_df_X = pd.DataFrame(data = X, columns = org_columns)
+
+    org_columns = ["Label"+str(x) for x in range(0, len(Y.reshape(len(Y), 1)[0]), 1)]
+    original_df_Y = pd.DataFrame(data = Y.reshape(len(Y), 1), columns = org_columns)
 
     # Set the parameters by cross-validation
     tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
@@ -39,7 +47,7 @@ def main():
     svm = SVC()
 
     # Using the function to get best estimator
-    (max_score, svm_best_estimator) = CrossValidationGridSearchNested(X, Y, NUM_TRIALS, 10, svm, tuned_parameters, 'roc_auc')
+    (max_score, svm_best_estimator) = CrossValidationGridSearchNested(original_df_X, original_df_Y, NUM_TRIALS, 10, svm, tuned_parameters, 'roc_auc')
     svm_best_parameter = svm_best_estimator.get_params()
 
     print(f'\nmax_score = {max_score}\n')
@@ -49,7 +57,9 @@ def main():
 #########################
 #     Sub-Routine       #
 #########################
-def CrossValidationGridSearchNested(X_data, Y_data, num_trials, fold_num, est_classifcation, tuned_param, scoring):
+def CrossValidationGridSearchNested(origin_df_X, origin_df_Y, num_trials, fold_num, est_classifcation, tuned_param, scoring):
+    X_data = origin_df_X.values
+    Y_data = origin_df_Y.values.ravel()
     max_score = -1
     best_estimator = est_classifcation
     is_tuned_param_empty = (tuned_param == []) | (tuned_param == None)
