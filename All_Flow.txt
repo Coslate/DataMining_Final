@@ -1,2 +1,2 @@
 The total flow of NBA game-winning prediction can be refered in 
-/home/coslate/python_ex/DataMining_Lab4/10667226_陳柏淳_Lab4.ipynb 
+/Users/coslate/Data_Mining/Lab/DM106-2\ Lab4/10667226_陳柏淳_Lab4.ipynb
